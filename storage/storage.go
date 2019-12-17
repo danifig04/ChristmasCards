@@ -7,6 +7,7 @@ import (
 	"github.com/danifig04/ChristmasCards/christmascards"
 )
 
+//will need to delete storage.go
 const filename = "christmascards.json"
 
 func Load() error {

@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/danifig04/ChristmasCards/christmascards"
-	"github.com/danifig04/ChristmasCards/storage"
+	"github.com/danifig04/ChristmasCards/db"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/manifoldco/promptui"
 )
 
@@ -22,11 +23,14 @@ const (
 )
 
 func main() {
-	err := storage.Load()
+	db, err := db.ConnectDatabase("db/christmascards_db.config")
 	if err != nil {
-		fmt.Println("Error loading cards", err)
+		fmt.Println("Error:", err.Error())
 		os.Exit(1)
 	}
+
+	cardService := christmascards.NewService(db)
+
 	for {
 		fmt.Println()
 		prompt := promptui.Select{
@@ -72,12 +76,16 @@ func main() {
 		}
 		time.Sleep(1000 * time.Millisecond)
 	}
+	//save to sql
+	cardService.SaveCard()
+
 	print("Done with cards")
-	err = storage.Save()
-	if err != nil {
-		fmt.Println("Error saving file", err)
-		return
-	}
+	// no longer saves to json
+	//err = storage.Save()
+	// if err != nil {
+	// 	fmt.Println("Error saving file", err)
+	// 	return
+	// }
 }
 func addCardPrompt() error {
 
@@ -186,5 +194,3 @@ func PrintShowListOfCards() {
 		fmt.Println(v.FamilyName)
 	}
 }
-
-//replace card cards w/ capital letters and set

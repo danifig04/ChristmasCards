@@ -1,10 +1,28 @@
 package christmascards
 
-import "fmt"
+import (
+	"database/sql"
+	"fmt"
+	"strings"
+)
+
+const (
+	insertCardsQuery = "INSERT INTO cards (FamilyNames, Address, PostagePrice, MembersNames) VALUES (?, ?, ?, ?)"
+)
 
 var (
 	cards []*Card
 )
+
+type CardsService struct {
+	db *sql.DB
+}
+
+func NewService(db *sql.DB) *CardsService {
+	return &CardsService{
+		db: db,
+	}
+}
 
 type Card struct {
 	FamilyName   string
@@ -13,6 +31,8 @@ type Card struct {
 	MembersNames []string
 	IsSent       bool
 }
+
+//TODO: Add MembersNames
 
 func AddCard(card *Card) {
 	cards = append(cards, card)
@@ -41,4 +61,18 @@ func CalculateTotalPostage() float64 {
 		fmt.Println(totalPostage)
 	}
 	return totalPostage
+}
+
+func (c *CardsService) SaveCard() error {
+	christmasCardsList := ListCard()
+
+	for _, card := range christmasCardsList {
+		famMembers := strings.Join(card.MembersNames, ",")
+		_, err := c.db.Exec(insertCardsQuery, card.FamilyName, card.Address, card.PostagePrice, famMembers)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
